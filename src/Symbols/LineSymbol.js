@@ -1,64 +1,72 @@
-EsriLeafletRenderers.LineSymbol = EsriLeafletRenderers.Symbol.extend({
+import Symbol from './Symbol';
+
+export var LineSymbol = Symbol.extend({
   statics: {
-    //Not implemented 'esriSLSNull'
-    LINETYPES:  ['esriSLSDash','esriSLSDot','esriSLSDashDotDot','esriSLSDashDot','esriSLSSolid']
+    // Not implemented 'esriSLSNull'
+    LINETYPES: ['esriSLSDash', 'esriSLSDot', 'esriSLSDashDotDot', 'esriSLSDashDot', 'esriSLSSolid']
   },
-  initialize: function(symbolJson){
-    EsriLeafletRenderers.Symbol.prototype.initialize.call(this, symbolJson);
+  initialize: function (symbolJson, options) {
+    Symbol.prototype.initialize.call(this, symbolJson, options);
     this._fillStyles();
   },
 
-  _fillStyles: function(){
-    //set the defaults that show up on arcgis online
+  _fillStyles: function () {
+    // set the defaults that show up on arcgis online
     this._styles.lineCap = 'butt';
     this._styles.lineJoin = 'miter';
+    this._styles.fill = false;
 
-
-    if (!this._symbolJson){
+    if (!this._symbolJson) {
       return;
     }
 
-    if(this._symbolJson.width){
-      this._styles.weight = this.pixelValue(this._symbolJson.width);
-    }
-
-    if(this._symbolJson.color ){
+    if (this._symbolJson.color) {
       this._styles.color = this.colorValue(this._symbolJson.color);
       this._styles.opacity = this.alphaValue(this._symbolJson.color);
     }
 
-    //usuing dash patterns pulled from arcgis online (converted to pixels)
-    switch(this._symbolJson.style){
-      case 'esriSLSDash':
-        //4,3
-        this._styles.dashArray = '5,4';
-        break;
-      case 'esriSLSDot':
-        //1,3
-        this._styles.dashArray = '1,4';
-        break;
-      case 'esriSLSDashDot':
-        //8,3,1,3
-        this._styles.dashArray = '11,4,1,4';
-        break;
-      case 'esriSLSDashDotDot':
-        //8,3,1,3,1,3
-        this._styles.dashArray = '11,4,1,4,1,4';
-        break;
+    if (this._symbolJson.width) {
+      this._styles.weight = this.pixelValue(this._symbolJson.width);
+
+      var dashValues = [];
+
+      switch (this._symbolJson.style) {
+        case 'esriSLSDash':
+          dashValues = [4, 3];
+          break;
+        case 'esriSLSDot':
+          dashValues = [1, 3];
+          break;
+        case 'esriSLSDashDot':
+          dashValues = [8, 3, 1, 3];
+          break;
+        case 'esriSLSDashDotDot':
+          dashValues = [8, 3, 1, 3, 1, 3];
+          break;
+      }
+
+      // use the dash values and the line weight to set dash array
+      if (dashValues.length > 0) {
+        for (var i = 0; i < dashValues.length; i++) {
+          dashValues[i] *= this._styles.weight;
+        }
+
+        this._styles.dashArray = dashValues.join(',');
+      }
     }
   },
 
-  style: function(feature, visualVariables){
-    if(!this._isDefault && visualVariables){
-      if(visualVariables.sizeInfo){
+  style: function (feature, visualVariables) {
+    if (!this._isDefault && visualVariables) {
+      if (visualVariables.sizeInfo) {
         var calculatedSize = this.pixelValue(this.getSize(feature, visualVariables.sizeInfo));
         if (calculatedSize) {
           this._styles.weight = calculatedSize;
         }
       }
-      if(visualVariables.colorInfo){
+      if (visualVariables.colorInfo) {
         var color = this.getColor(feature, visualVariables.colorInfo);
-        if(color){
+        if (color) {
           this._styles.color = this.colorValue(color);
           this._styles.opacity = this.alphaValue(color);
         }
@@ -67,6 +75,9 @@ EsriLeafletRenderers.LineSymbol = EsriLeafletRenderers.Symbol.extend({
     return this._styles;
   }
 });
-EsriLeafletRenderers.lineSymbol = function(symbolJson){
-  return new EsriLeafletRenderers.LineSymbol(symbolJson);
-};
+
+export function lineSymbol (symbolJson, options) {
+  return new LineSymbol(symbolJson, options);
+}
+
+export default lineSymbol;

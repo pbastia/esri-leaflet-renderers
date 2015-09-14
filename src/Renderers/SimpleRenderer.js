@@ -1,21 +1,24 @@
-EsriLeafletRenderers.SimpleRenderer = EsriLeafletRenderers.Renderer.extend({
+import Renderer from './Renderer';
 
-  initialize: function(rendererJson, options){
-    EsriLeafletRenderers.Renderer.prototype.initialize.call(this, rendererJson, options);
+export var SimpleRenderer = Renderer.extend({
+  initialize: function (rendererJson, options) {
+    Renderer.prototype.initialize.call(this, rendererJson, options);
     this._createSymbol();
   },
 
-  _createSymbol: function(){
-    if(this._rendererJson.symbol){
+  _createSymbol: function () {
+    if (this._rendererJson.symbol) {
       this._symbols.push(this._newSymbol(this._rendererJson.symbol));
     }
   },
 
-  _getSymbol: function(){
+  _getSymbol: function () {
     return this._symbols[0];
   }
 });
 
-EsriLeafletRenderers.simpleRenderer = function(rendererJson, options){
-  return new EsriLeafletRenderers.SimpleRenderer(rendererJson, options);
-};
+export function simpleRenderer (rendererJson, options) {
+  return new SimpleRenderer(rendererJson, options);
+}
+
+export default simpleRenderer;

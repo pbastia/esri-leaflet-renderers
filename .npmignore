@@ -15,7 +15,6 @@ Icon
 
 # Node
 node_modules
-npm-debug.log
 
 # Coverage
 coverage
@@ -28,15 +27,3 @@ working
 
 # Docs Build
 site/build
-
-# Debugging Files
-debug/*
-!debug/sample.html
-
-# Built Files
-dist/**/*.js
-dist/**/*.map
-dist/**/*.css
-dist/**/*.gif
-dist/**/*.png
-dist/**/*.jpg

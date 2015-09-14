@@ -1,11 +1,16 @@
-EsriLeafletRenderers.Renderer = L.Class.extend({
+import L from 'leaflet';
 
+import pointSymbol from '../Symbols/PointSymbol';
+import lineSymbol from '../Symbols/LineSymbol';
+import polygonSymbol from '../Symbols/PolygonSymbol';
+
+export var Renderer = L.Class.extend({
   options: {
     proportionalPolygon: false,
     clickable: true
   },
 
-  initialize: function(rendererJson, options){
+  initialize: function (rendererJson, options) {
     this._rendererJson = rendererJson;
     this._pointSymbols = false;
     this._symbols = [];
@@ -13,65 +18,71 @@ EsriLeafletRenderers.Renderer = L.Class.extend({
     L.Util.setOptions(this, options);
   },
 
-  _parseVisualVariables: function(visualVariables){
+  _parseVisualVariables: function (visualVariables) {
     var visVars = {};
     if (visualVariables) {
-      for (var i = 0; i < visualVariables.length; i++){
+      for (var i = 0; i < visualVariables.length; i++) {
         visVars[visualVariables[i].type] = visualVariables[i];
       }
     }
     return visVars;
   },
 
-  _createDefaultSymbol: function(){
-    if(this._rendererJson.defaultSymbol){
+  _createDefaultSymbol: function () {
+    if (this._rendererJson.defaultSymbol) {
       this._defaultSymbol = this._newSymbol(this._rendererJson.defaultSymbol);
       this._defaultSymbol._isDefault = true;
     }
   },
 
-  _newSymbol: function(symbolJson){
-    if(symbolJson.type === 'esriSMS' || symbolJson.type === 'esriPMS'){
+  _newSymbol: function (symbolJson) {
+    if (symbolJson.type === 'esriSMS' || symbolJson.type === 'esriPMS') {
       this._pointSymbols = true;
-      return EsriLeafletRenderers.pointSymbol(symbolJson, this.options);
+      return pointSymbol(symbolJson, this.options);
     }
-    if(symbolJson.type === 'esriSLS'){
-      return EsriLeafletRenderers.lineSymbol(symbolJson);
+    if (symbolJson.type === 'esriSLS') {
+      return lineSymbol(symbolJson, this.options);
     }
-    if(symbolJson.type === 'esriSFS'){
-      return EsriLeafletRenderers.polygonSymbol(symbolJson);
+    if (symbolJson.type === 'esriSFS') {
+      return polygonSymbol(symbolJson, this.options);
     }
   },
 
-  _getSymbol: function(){
-    //override
+  _getSymbol: function () {
+    // override
   },
 
-  attachStylesToLayer: function(layer){
-    if(this._pointSymbols){
+  attachStylesToLayer: function (layer) {
+    if (this._pointSymbols) {
       layer.options.pointToLayer = L.Util.bind(this.pointToLayer, this);
     } else {
       layer.options.style = L.Util.bind(this.style, this);
     }
   },
 
-  pointToLayer: function(geojson, latlng){
+  pointToLayer: function (geojson, latlng) {
     var sym = this._getSymbol(geojson);
-    if(sym && sym.pointToLayer){
+    if (sym && sym.pointToLayer) {
       return sym.pointToLayer(geojson, latlng, this._visualVariables);
     }
-    //invisible symbology
+    // invisible symbology
     return L.circleMarker(latlng, {radius: 0, opacity: 0});
   },
 
-  style: function(feature){
-    //find the symbol to represent this feature
+  style: function (feature) {
+    // find the symbol to represent this feature
     var sym = this._getSymbol(feature);
-    if(sym){
+    if (sym) {
       return sym.style(feature, this._visualVariables);
-    }else{
-      //invisible symbology
+    } else {
+      // invisible symbology
       return {opacity: 0, fillOpacity: 0};
     }
   }
 });
+
+export function renderer (rendererJson, options) {
+  return new Renderer(rendererJson, options);
+}
+
+export default renderer;
