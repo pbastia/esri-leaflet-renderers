@@ -57,6 +57,7 @@ export var Renderer = L.Class.extend({
       layer.options.pointToLayer = L.Util.bind(this.pointToLayer, this);
     } else {
       layer.options.style = L.Util.bind(this.style, this);
+      layer._originalStyle = layer.options.style;
     }
   },
 
@@ -70,14 +71,38 @@ export var Renderer = L.Class.extend({
   },
 
   style: function (feature) {
+    var userStyles;
+    if (this.options.userDefinedStyle) {
+      userStyles = this.options.userDefinedStyle(feature);
+    }
     // find the symbol to represent this feature
     var sym = this._getSymbol(feature);
     if (sym) {
-      return sym.style(feature, this._visualVariables);
+      return this.mergeStyles(sym.style(feature, this._visualVariables), userStyles);
     } else {
       // invisible symbology
-      return {opacity: 0, fillOpacity: 0};
+      return this.mergeStyles({opacity: 0, fillOpacity: 0}, userStyles);
     }
+  },
+
+  mergeStyles: function (styles, userStyles) {
+    var mergedStyles = {};
+    var attr;
+    // copy renderer style attributes
+    for (attr in styles) {
+      if (styles.hasOwnProperty(attr)) {
+        mergedStyles[attr] = styles[attr];
+      }
+    }
+    // override with user defined style attributes
+    if (userStyles) {
+      for (attr in userStyles) {
+        if (userStyles.hasOwnProperty(attr)) {
+          mergedStyles[attr] = userStyles[attr];
+        }
+      }
+    }
+    return mergedStyles;
   }
 });
 
